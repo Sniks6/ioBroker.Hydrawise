@@ -1,0 +1,76 @@
+{
+	"common": {
+		"name": "hydrawise",
+		"version": "0.0.1",
+		"news": {
+			"0.0.1": {
+				"en": "initial release",
+				"de": "Erstveröffentlichung",
+				"ru": "Начальная версия",
+				"pt": "lançamento inicial",
+				"nl": "Eerste uitgave",
+				"fr": "Première version",
+				"it": "Versione iniziale",
+				"es": "Versión inicial",
+				"pl": "Pierwsze wydanie",
+				"zh-cn": "首次出版"
+			}
+		},
+		"titleLang": {
+			"en": "Hydrawise",
+			"de": "Hydrawise",
+			"ru": "Hydrawise",
+			"pt": "Hydrawise",
+			"nl": "Hydrawise",
+			"fr": "Hydrawise",
+			"it": "Hydrawise",
+			"es": "Hydrawise",
+			"pl": "hydraulikiem",
+			"zh-cn": "水草"
+		},
+		"desc": {
+			"en": "Hydrawise Adapter to connect ioBroker and Hydrawise - irrigation system",
+			"de": "Hydrawise Adapter zum Verbinden von ioBroker und Hydrawise - Bewässerungssystem",
+			"ru": "Адаптер Hydrawise для подключения ioBroker и Hydrawise - системы орошения",
+			"pt": "Adaptador Hydrawise para conectar ioBroker e Hydrawise - sistema de irrigação",
+			"nl": "Hydrawise Adapter om ioBroker en Hydrawise - irrigatiesysteem aan te sluiten",
+			"fr": "Adaptateur Hydrawise pour connecter ioBroker et Hydrawise - système d'irrigation",
+			"it": "Adattatore Hydrawise per collegare ioBroker e Hydrawise - sistema di irrigazione",
+			"es": "Adaptador Hydrawise para conectar ioBroker e Hydrawise - sistema de riego",
+			"pl": "Adapter Hydrawise do połączenia ioBroker i Hydrawise - system nawadniający",
+			"zh-cn": "用于连接 ioBroker 和 Hydrawise 的 Hydrawise 适配器 - 灌溉系统"
+		},
+		"authors": [
+			"Sniks6 <alexander.henz@bodyhey.com>"
+		],
+		"keywords": [
+			"iobroker",
+			"hydrawise",
+			"irrigation system"
+		],
+		"license": "GPL-3.0",
+		"platform": "Javascript/Node.js",
+		"icon": "hydrawise.png",
+		"enabled": true,
+		"extIcon": "https://raw.githubusercontent.com/Sniks6/ioBroker.hydrawise/master/admin/hydrawise.png",
+		"readme": "https://github.com/Sniks6/ioBroker.hydrawise/blob/master/README.md",
+		"loglevel": "info",
+		"mode": "daemon",
+		"type": "garden",
+		"compact": true,
+		"connectionType": "cloud",
+		"dataSource": "poll",
+		"materialize": true,
+		"dependencies": [
+			{
+				"js-controller": ">=2.0.0"
+			}
+		]
+	},
+	"native": {
+		"option1": true,
+		"option2": "42"
+	},
+	"objects": [],
+	"instanceObjects": []
+}
