@@ -18,7 +18,8 @@
     "url": "https://github.com/Sniks6/ioBroker.hydrawise"
   },
   "dependencies": {
-    "@iobroker/adapter-core": "^2.5.0"
+    "@iobroker/adapter-core": "^2.5.0",
+    "request": "^2.88.0"
   },
   "devDependencies": {
     "@alcalzone/release-script": "^1.10.0",

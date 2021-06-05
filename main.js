@@ -7,6 +7,7 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 const utils = require("@iobroker/adapter-core");
+const request = require("request");
 
 // Load your modules here, e.g.:
 // const fs = require("fs");
@@ -36,8 +37,23 @@ class Hydrawise extends utils.Adapter {
 
 		// The adapters config (in the instance object everything under the attribute "native") is accessible via
 		// this.config:
-		this.log.info("config option1: " + this.config.option1);
-		this.log.info("config option2: " + this.config.option2);
+		var apikey = this.config.apikey;
+		this.log.info("config apikey: " + this.config.apikey);
+
+		request(
+			{
+				url: "https://api.hydrawise.com/api/v1/statusschedule.php?api_key=" + apikey,
+				json: true
+			},
+			function (error, response, content) {
+				if (!error) {
+					this.log.info(content);
+				} else {
+					this.log.info(error);
+				}
+
+			}
+		);
 
 		/*
 		For every state in the system there has to be also an object of type state
