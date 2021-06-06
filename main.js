@@ -8,6 +8,7 @@
 // you need to create an adapter
 const utils = require("@iobroker/adapter-core");
 const request = require("request");
+var adapter;
 
 // Load your modules here, e.g.:
 // const fs = require("fs");
@@ -39,17 +40,35 @@ class Hydrawise extends utils.Adapter {
 		// this.config:
 		var apikey = this.config.apikey;
 		this.log.info("config apikey: " + this.config.apikey);
-
+		adapter = this;
 		request(
 			{
 				url: "https://api.hydrawise.com/api/v1/statusschedule.php?api_key=" + apikey,
 				json: true
 			},
 			function (error, response, content) {
-				if (!error) {
-					this.log.info(content);
+				adapter.log.debug('Request done!');
+				if (!error && response.statusCode == 200) {
+
+					adapter.createObjectsJSON(content,'relayinfos');
+
+
+
+					// await this.setObjectNotExistsAsync("testVariable", {
+					// 	type: "state",
+					// 	common: {
+					// 		name: "testVariable",
+					// 		type: "boolean",
+					// 		role: "indicator",
+					// 		read: true,
+					// 		write: true,
+					// 	},
+					// 	native: {},
+					// });
+
+
 				} else {
-					this.log.info(error);
+					adapter.log.info(error);
 				}
 
 			}
@@ -144,11 +163,14 @@ class Hydrawise extends utils.Adapter {
 	onStateChange(id, state) {
 		if (state) {
 			// The state was changed
-			this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
+			this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack}) ` + state.from.search('hydrawise'));
 		} else {
 			// The state was deleted
 			this.log.info(`state ${id} deleted`);
 		}
+
+		if (state.from.search ('hydrawise') != -1) {return;} // do not process self generated state changes (by hydrawise instance)
+
 	}
 
 	// If you need to accept messages in your adapter, uncomment the following block and the corresponding line in the constructor.
@@ -168,6 +190,48 @@ class Hydrawise extends utils.Adapter {
 	// 		}
 	// 	}
 	// }
+
+	createObjectsJSON(jsonObj, folder = "") {
+		adapter.log.info('Start function createObjectsJSON');
+		for (var key in jsonObj) {
+			var stateName = "";
+			if (folder != '') {
+				stateName = folder + "." + key;
+			} else {
+				stateName = key;
+			}
+
+
+			// Check wether content is object
+			// if (jsonObj === Object(jsonObj)) {
+			if (typeof jsonObj[key] === 'object') {
+
+				adapter.createObjectsJSON(jsonObj[key], stateName);
+
+				//adapter.log.info('OBJECT: ' + folder + '.' +key + ' - ' + jsonObj[key]);
+			} else {
+				//var stateName = folder + "." + key;
+
+				adapter.log.info(stateName + ': ' + jsonObj[key]);
+
+
+				//await this.setObjectNotExistsAsync(stateName, {
+				this.setObjectNotExistsAsync(stateName, {
+					type: "state",
+					common: {
+						name: key,
+						type: "string",
+						role: "value",
+						read: true,
+						write: true,
+					},
+					native: {},
+				});
+				//await this.setStateAsync(stateName, { val: jsonObj[key], ack: true });
+				this.setStateAsync(stateName, { val: jsonObj[key], ack: true });
+			}
+		}
+	}
 
 }
 
