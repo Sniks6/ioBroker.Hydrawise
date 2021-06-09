@@ -7,8 +7,11 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 const utils = require("@iobroker/adapter-core");
-const request = require("request");
+//const request = require("request");
+const axios = require('axios');
+const timeout = null;
 var adapter;
+var apikey;
 
 // Load your modules here, e.g.:
 // const fs = require("fs");
@@ -38,41 +41,17 @@ class Hydrawise extends utils.Adapter {
 
 		// The adapters config (in the instance object everything under the attribute "native") is accessible via
 		// this.config:
-		var apikey = this.config.apikey;
-		this.log.info("config apikey: " + this.config.apikey);
-		adapter = this;
-		request(
-			{
-				url: "https://api.hydrawise.com/api/v1/statusschedule.php?api_key=" + apikey,
-				json: true
-			},
-			function (error, response, content) {
-				adapter.log.debug('Request done!');
-				if (!error && response.statusCode == 200) {
 
-					adapter.createObjectsJSON(content,'relayinfos');
+		if (!this.config.apikey) {
+            this.log.warn('API key not configured. Check configuration of instance ' + this.namespace);
+    } else {
+			this.apikey = this.config.apikey;
+			this.log.info("config apikey: " + this.config.apikey);
+
+			this.poll();
+		}
 
 
-
-					// await this.setObjectNotExistsAsync("testVariable", {
-					// 	type: "state",
-					// 	common: {
-					// 		name: "testVariable",
-					// 		type: "boolean",
-					// 		role: "indicator",
-					// 		read: true,
-					// 		write: true,
-					// 	},
-					// 	native: {},
-					// });
-
-
-				} else {
-					adapter.log.info(error);
-				}
-
-			}
-		);
 
 		/*
 		For every state in the system there has to be also an object of type state
@@ -131,6 +110,11 @@ class Hydrawise extends utils.Adapter {
 			// clearTimeout(timeout2);
 			// ...
 			// clearInterval(interval1);
+			
+			if (this.timeout) {
+          this.log.debug('clearing timeout');
+          clearTimeout(timeout);
+      }
 
 			callback();
 		} catch (e) {
@@ -161,15 +145,17 @@ class Hydrawise extends utils.Adapter {
 	 * @param {ioBroker.State | null | undefined} state
 	 */
 	onStateChange(id, state) {
+
 		if (state) {
 			// The state was changed
 			this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack}) ` + state.from.search('hydrawise'));
+			if (state.from.search ('hydrawise') != -1) {return;} // do not process self generated state changes (by hydrawise instance)
 		} else {
 			// The state was deleted
 			this.log.info(`state ${id} deleted`);
 		}
 
-		if (state.from.search ('hydrawise') != -1) {return;} // do not process self generated state changes (by hydrawise instance)
+
 
 	}
 
@@ -191,8 +177,43 @@ class Hydrawise extends utils.Adapter {
 	// 	}
 	// }
 
+	async poll() {
+		adapter = this;
+
+
+		// axios.get("https://api.hydrawise.com/api/v1/statusschedule.php?api_key=" + this.apikey)
+		axios({
+			method: 'get',
+			url: "https://api.hydrawise.com/api/v1/statusschedule.php?api_key=" + this.apikey,
+			responseType: 'json'
+		})
+	  // .then(function (response) {
+		.then(response => {
+	    // handle success
+	    // this.log.info(response.data);
+			this.log.info('Axios: request done!');
+
+
+			this.createObjectsJSON(response.data,'relayinfos');
+
+	  })
+	  .catch(function (error) {
+	    // handle error
+	    adapter.log.info("Axios-Error: " + error);
+	  })
+	  .then(function () {
+	    // always executed
+	  });
+
+		this.timeout = this.timeout || setTimeout(() => {
+        this.timeout = null;
+        this.poll();
+    }, 20 * 1000);
+	}
+
 	createObjectsJSON(jsonObj, folder = "") {
 		adapter.log.info('Start function createObjectsJSON');
+		adapter.log.debug('JSON-Object: ' + JSON.stringify(jsonObj));
 		for (var key in jsonObj) {
 			var stateName = "";
 			if (folder != '') {
@@ -215,22 +236,24 @@ class Hydrawise extends utils.Adapter {
 				adapter.log.info(stateName + ': ' + jsonObj[key]);
 
 
+
+
 				//await this.setObjectNotExistsAsync(stateName, {
 				this.setObjectNotExistsAsync(stateName, {
-					type: "state",
-					common: {
-						name: key,
-						type: "string",
-						role: "value",
-						read: true,
-						write: true,
-					},
-					native: {},
-				});
-				//await this.setStateAsync(stateName, { val: jsonObj[key], ack: true });
-				this.setStateAsync(stateName, { val: jsonObj[key], ack: true });
-			}
-		}
+							type: "state",
+							common: {
+								name: key,
+								type: "string",
+								role: "value",
+								read: true,
+								write: true,
+							},
+							native: {},
+					});
+					//await this.setStateAsync(stateName, { val: jsonObj[key], ack: true });
+					this.setStateAsync(stateName, { val: jsonObj[key], ack: true });
+				}
+		} //END FOR
 	}
 
 }
